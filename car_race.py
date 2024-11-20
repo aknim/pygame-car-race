@@ -12,6 +12,14 @@ FPS = 60
 WHITE = (255, 255, 255)
 GRAY = (50, 50, 50)
 YELLOW = (255, 255, 0)
+RED = (200, 0, 0)
+
+# Player car
+player_width = 50
+player_height = 100
+player_x = SCREEN_WIDTH // 2 - player_width // 2
+player_y = SCREEN_HEIGHT - player_height - 20
+player_speed = 5
 
 # Setup screen
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -19,6 +27,8 @@ pygame.display.set_caption("Car Racing Game")
 
 # Clock for controlling frame rate
 clock = pygame.time.Clock()
+
+
 
 def draw_road():
     screen.fill(GRAY)
@@ -35,6 +45,8 @@ def draw_road():
         pygame.draw.line(screen, YELLOW, (SCREEN_WIDTH // 2 - 5, y),
                         (SCREEN_WIDTH // 2 + 5, y + 20), 3)
         
+def draw_player(x, y):
+    pygame.draw.rect(screen, RED, (x, y, player_width, player_height))
 # Game loop
 running = True
 while running: 
@@ -42,7 +54,14 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT] and player_x > 0:
+        player_x -= player_speed
+    if keys[pygame.K_RIGHT] and player_x < SCREEN_WIDTH - player_width:
+        player_x += player_speed
+
     draw_road()
+    draw_player(player_x, player_y)
 
     pygame.display.flip()
     clock.tick(FPS)
