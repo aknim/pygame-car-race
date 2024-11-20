@@ -15,6 +15,7 @@ GRAY = (50, 50, 50)
 YELLOW = (255, 255, 0)
 RED = (200, 0, 0)
 BLUE = (0, 0, 200)
+GREEN = (0, 255, 0)
 
 # Player car
 player_width = 50
@@ -28,6 +29,11 @@ obstacle_width = 50
 obstacle_height = 100
 obstacle_speed = 5
 obstacles = []
+
+# Score and difficulty
+score = 0
+difficulty_increase_rate = 1
+difficulty_level = 1
 
 # Setup screen
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -66,8 +72,12 @@ def draw_obstacles():
         pygame.draw.rect(screen, BLUE, (obstacle[0], obstacle[1], obstacle_width, obstacle_height))
 
 def update_obstacles():
+    global score
     for obstacle in obstacles: 
         obstacle[1] += obstacle_speed
+        if obstacle[1] > SCREEN_HEIGHT:
+            obstacles.remove(obstacle)
+            score += 1
 
 def detect_collision(player_x, player_y):
     for obstacle in obstacles:
@@ -78,6 +88,11 @@ def detect_collision(player_x, player_y):
         ):
             return True
     return False
+
+def display_score():
+    font = pygame.font.Font(None, 36)
+    score_text = font.render(f"Score: {score}", True, GREEN)
+    screen.blit(score_text, (10, 10))
 
 # Game loop
 running = True
@@ -98,16 +113,20 @@ while running:
     
     update_obstacles()
 
-    obstacles = [obstacle for obstacle in obstacles if obstacle[1] < SCREEN_HEIGHT]
-
     # Check for collisions
     if detect_collision(player_x, player_y):
         print("Game Over!")
         running = False
 
+    # Increase difficulty based on score
+    if score // difficulty_increase_rate > difficulty_level:
+        obstacle_speed += 1
+        difficulty_level += 1
+
     draw_road()
     draw_player(player_x, player_y)
     draw_obstacles()
+    display_score()
 
     pygame.display.flip()
     clock.tick(FPS)
