@@ -35,6 +35,11 @@ score = 0
 difficulty_increase_rate = 1
 difficulty_level = 1
 
+# Load sound effects
+collision_sound = pygame.mixer.Sound("collision_sound.flac")
+start_sound = pygame.mixer.Sound("start_sound.wav")
+pygame.mixer.music.load("background_music.wav")
+
 # Setup screen
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Car Racing Game")
@@ -102,6 +107,7 @@ def display_text(text, font_size, color, y_offset=0):
 
 def start_screen():
     running = True
+    start_sound.play()
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -130,6 +136,9 @@ def game_over_screen():
         display_text("Game Over", 48, RED, -50)
         display_text(f"Final Score: {score}", 36, WHITE, 0)
         display_text("Press Enter to Restart", 36, WHITE, 50)
+        pygame.mixer.music.stop()
+        # start_sound.play()
+
         pygame.display.flip()
         clock.tick(FPS)
 
@@ -143,6 +152,7 @@ def restart_game():
 # Main Game loop
 def main_game():
     global player_x, player_y, score, obstacles, obstacle_speed, difficulty_level
+    pygame.mixer.music.play(-1, 0.0) # Loop background music indefinitely
     running = True
     while running: 
         for event in pygame.event.get():
@@ -163,7 +173,9 @@ def main_game():
 
         # Check for collisions
         if detect_collision(player_x, player_y):
+            collision_sound.play()
             game_over_screen()
+            return
 
         # Increase difficulty based on score
         if score // difficulty_increase_rate > difficulty_level:
