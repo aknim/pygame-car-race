@@ -94,42 +94,90 @@ def display_score():
     score_text = font.render(f"Score: {score}", True, GREEN)
     screen.blit(score_text, (10, 10))
 
-# Game loop
-running = True
-while running: 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
+def display_text(text, font_size, color, y_offset=0):
+    font = pygame.font.Font(None, font_size)
+    text_surface = font.render(text, True, color)
+    text_rect = text_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + y_offset))
+    screen.blit(text_surface, text_rect)
 
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_LEFT] and player_x > 0:
-        player_x -= player_speed
-    if keys[pygame.K_RIGHT] and player_x < SCREEN_WIDTH - player_width:
-        player_x += player_speed
+def start_screen():
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                running = False
+        
+        screen.fill(GRAY)
+        display_text("Car Racing Game", 48, WHITE, -50)
+        display_text("Press Enter to Start", 36, WHITE, 50)
+        pygame.display.flip()
+        clock.tick(FPS)
 
-    # Generate obstacles randomly
-    if random.randint(1, 30) == 1: # Adjust frequency as needed
-        obstacles.append(generate_obstacle())
-    
-    update_obstacles()
+def game_over_screen():
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                restart_game()
 
-    # Check for collisions
-    if detect_collision(player_x, player_y):
-        print("Game Over!")
-        running = False
+        screen.fill(GRAY)
+        display_text("Game Over", 48, RED, -50)
+        display_text(f"Final Score: {score}", 36, WHITE, 0)
+        display_text("Press Enter to Restart", 36, WHITE, 50)
+        pygame.display.flip()
+        clock.tick(FPS)
 
-    # Increase difficulty based on score
-    if score // difficulty_increase_rate > difficulty_level:
-        obstacle_speed += 1
-        difficulty_level += 1
+def restart_game():
+    global score, obstacles, player_x
+    score = 0
+    obstacles = []
+    player_x = SCREEN_WIDTH // 2 - player_width // 2
+    main_game()
 
-    draw_road()
-    draw_player(player_x, player_y)
-    draw_obstacles()
-    display_score()
+# Main Game loop
+def main_game():
+    global player_x, player_y, score, obstacles, obstacle_speed, difficulty_level
+    running = True
+    while running: 
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
 
-    pygame.display.flip()
-    clock.tick(FPS)
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_LEFT] and player_x > 0:
+            player_x -= player_speed
+        if keys[pygame.K_RIGHT] and player_x < SCREEN_WIDTH - player_width:
+            player_x += player_speed
 
-pygame.quit()
-sys.exit()
+        # Generate obstacles randomly
+        if random.randint(1, 30) == 1: # Adjust frequency as needed
+            obstacles.append(generate_obstacle())
+        
+        update_obstacles()
+
+        # Check for collisions
+        if detect_collision(player_x, player_y):
+            game_over_screen()
+
+        # Increase difficulty based on score
+        if score // difficulty_increase_rate > difficulty_level:
+            obstacle_speed += 1
+            difficulty_level += 1
+
+        draw_road()
+        draw_player(player_x, player_y)
+        draw_obstacles()
+        display_score()
+
+        pygame.display.flip()
+        clock.tick(FPS)
+
+# Start the game
+start_screen()
+main_game()
