@@ -1,5 +1,6 @@
 import pygame
 import sys
+import random
 
 pygame.init()
 
@@ -13,6 +14,7 @@ WHITE = (255, 255, 255)
 GRAY = (50, 50, 50)
 YELLOW = (255, 255, 0)
 RED = (200, 0, 0)
+BLUE = (0, 0, 200)
 
 # Player car
 player_width = 50
@@ -20,6 +22,12 @@ player_height = 100
 player_x = SCREEN_WIDTH // 2 - player_width // 2
 player_y = SCREEN_HEIGHT - player_height - 20
 player_speed = 5
+
+# Obstacle cars
+obstacle_width = 50
+obstacle_height = 100
+obstacle_speed = 5
+obstacles = []
 
 # Setup screen
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -47,6 +55,30 @@ def draw_road():
         
 def draw_player(x, y):
     pygame.draw.rect(screen, RED, (x, y, player_width, player_height))
+
+def generate_obstacle():
+    x = random.randint(0, SCREEN_WIDTH - obstacle_width)
+    y = - obstacle_height # start off-screen
+    return [x, y]
+
+def draw_obstacles():
+    for obstacle in obstacles:
+        pygame.draw.rect(screen, BLUE, (obstacle[0], obstacle[1], obstacle_width, obstacle_height))
+
+def update_obstacles():
+    for obstacle in obstacles: 
+        obstacle[1] += obstacle_speed
+
+def detect_collision(player_x, player_y):
+    for obstacle in obstacles:
+        if (
+            obstacle[0] - player_width < player_x < obstacle[0] + obstacle_width and
+            obstacle[1] - player_height < player_y < obstacle[1] + obstacle_height 
+
+        ):
+            return True
+    return False
+
 # Game loop
 running = True
 while running: 
@@ -60,8 +92,22 @@ while running:
     if keys[pygame.K_RIGHT] and player_x < SCREEN_WIDTH - player_width:
         player_x += player_speed
 
+    # Generate obstacles randomly
+    if random.randint(1, 30) == 1: # Adjust frequency as needed
+        obstacles.append(generate_obstacle())
+    
+    update_obstacles()
+
+    obstacles = [obstacle for obstacle in obstacles if obstacle[1] < SCREEN_HEIGHT]
+
+    # Check for collisions
+    if detect_collision(player_x, player_y):
+        print("Game Over!")
+        running = False
+
     draw_road()
     draw_player(player_x, player_y)
+    draw_obstacles()
 
     pygame.display.flip()
     clock.tick(FPS)
